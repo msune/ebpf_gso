@@ -17,6 +17,9 @@ ETHTOOL_OPTS := rx-checksumming off tx-checksumming off
 MTU := 1440 #To be on the safe side
 CLANG ?= clang
 
+IPERF_OPTS := -u -b 10G -l 1400
+IPERF_SERVER_OPTS := -u
+
 all: check
 check: _setup _load
 
@@ -92,8 +95,10 @@ _compile:
 _load: _compile
 	$(QUIET)sudo ip netns exec ns1 tc qdisc add dev veth0 clsact
 	$(QUIET)sudo ip netns exec ns1 tc filter add dev veth0 egress bpf da obj ../src/push.o verbose
-	$(QUIET)sudo ip netns exec ns2 tc qdisc add dev veth3 clsact
-	$(QUIET)sudo ip netns exec ns2 tc filter add dev veth3 ingress bpf da obj ../src/pop.o verbose
+	$(QUIET)sudo tc qdisc add dev veth2 clsact
+	$(QUIET)sudo tc filter add dev veth2 egress bpf da obj ../src/pop.o verbose
+	#$(QUIET)sudo ip netns exec ns2 tc qdisc add dev veth3 clsact
+	#$(QUIET)sudo ip netns exec ns2 tc filter add dev veth3 ingress bpf da obj ../src/pop.o verbose
 
 _unload:
 	$(QUIET)sudo ip netns exec ns1 tc filter del dev veth0 egress
@@ -105,11 +110,11 @@ _clean_iperf:
 
 # No DNAT/SNAT
 check_perf_calibration:
-	$(QUIET)sudo ip netns exec ns2 iperf -s -p 80 $(IPERF_OPTS) &
+	$(QUIET)sudo ip netns exec ns2 iperf -s -p 80 $(IPERF_SERVER_OPTS) &
 	$(QUIET)sudo ip netns exec ns1 iperf -c 10.0.1.2 -p 80 $(IPERF_OPTS)
 	$(QUIET) $(MAKE) _clean_iperf
 check_perf:
-	$(QUIET)sudo ip netns exec ns2 iperf -s -p 8080 $(IPERF_OPTS) &
+	$(QUIET)sudo ip netns exec ns2 iperf -s -p 8080 $(IPERF_SERVER_OPTS) &
 	$(QUIET)sudo ip netns exec ns1 iperf -c 10.0.1.2 -p 8080 $(IPERF_OPTS)
 	$(QUIET) $(MAKE) _clean_iperf
 
