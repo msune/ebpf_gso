@@ -92,8 +92,10 @@ _compile:
 _load: _compile
 	$(QUIET)sudo ip netns exec ns1 tc qdisc add dev veth0 clsact
 	$(QUIET)sudo ip netns exec ns1 tc filter add dev veth0 egress bpf da obj ../src/push.o verbose
-	$(QUIET)sudo ip netns exec ns2 tc qdisc add dev veth3 clsact
-	$(QUIET)sudo ip netns exec ns2 tc filter add dev veth3 ingress bpf da obj ../src/pop.o verbose
+	$(QUIET)sudo tc qdisc add dev veth2 clsact
+	$(QUIET)sudo tc filter add dev veth2 egress bpf da obj ../src/pop.o verbose
+	#$(QUIET)sudo ip netns exec ns2 tc qdisc add dev veth3 clsact
+	#$(QUIET)sudo ip netns exec ns2 tc filter add dev veth3 ingress bpf da obj ../src/pop.o verbose
 
 _unload:
 	$(QUIET)sudo ip netns exec ns1 tc filter del dev veth0 egress
