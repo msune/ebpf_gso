@@ -38,7 +38,7 @@ __be16 csum_fold(__s64 csum)
 }
 
 SEC("classifier")
-int tcponudp(struct __sk_buff *skb)
+int fun_unfun_tcp(struct __sk_buff *skb)
 {
 	int rc;
 	struct ethhdr *eth;
